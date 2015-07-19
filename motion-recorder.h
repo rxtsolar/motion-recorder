@@ -18,7 +18,7 @@ public:
 
 	}
 
-	virtual void startRecording(void)
+	void startRecording(void)
 	{
 		time_t t;
 		tm* timeinfo;
@@ -100,16 +100,6 @@ public:
 		watch();
 	}
 
-	virtual void startRecording(void)
-	{
-		Recorder::startRecording();
-		for (int i = (index + 1) % margin; i != index; i = (i + 1) % margin) {
-			if (buffer[i].empty())
-				break;
-			writeFrame(buffer[i]);
-		}
-	}
-
 private:
 	vector<Mat> buffer;
 	Mat current;
@@ -139,6 +129,7 @@ private:
 				resetCount();
 				if (!isRecording()) {
 					startRecording();
+					writePreviousFrames();
 				}
 			}
 
@@ -156,6 +147,16 @@ private:
 
 			if (waitKey(40) == 27)
 				running = false;
+		}
+	}
+
+	void writePreviousFrames(void)
+	{
+		Recorder::startRecording();
+		for (int i = (index + 1) % margin; i != index; i = (i + 1) % margin) {
+			if (buffer[i].empty())
+				break;
+			writeFrame(buffer[i]);
 		}
 	}
 
