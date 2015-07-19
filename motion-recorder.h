@@ -32,7 +32,7 @@ public:
 		fileName = string(buffer);
 
 		fileName += ".avi";
-		videoWriter.open(fileName, CV_FOURCC('M', 'J', 'P', 'G'), 25, 
+		videoWriter.open(fileName, CV_FOURCC('M', 'J', 'P', 'G'), 25,
 				cvSize(width, height));
 		if (!videoWriter.isOpened()) {
 			exit(-1);
@@ -111,7 +111,7 @@ public:
 	}
 
 private:
-	vector<Mat> buffer; 
+	vector<Mat> buffer;
 	Mat current;
 	Mat previous;
 	int index;
@@ -141,7 +141,7 @@ private:
 					startRecording();
 				}
 			}
-			
+
 			if (isRecording()) {
 				writeFrame(current);
 
