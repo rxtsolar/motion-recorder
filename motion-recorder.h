@@ -2,6 +2,7 @@
 #define _MOTION_RECORDER_H_
 
 #include <opencv2/opencv.hpp>
+#include <vector>
 #include <ctime>
 
 namespace gs {
@@ -17,7 +18,7 @@ public:
 
 	}
 
-	void startRecording(void)
+	void startRecording(const vector<Mat>& head, int index)
 	{
 		time_t t;
 		tm* timeinfo;
@@ -34,8 +35,16 @@ public:
 		videoWriter.open(fileName, CV_FOURCC('M', 'J', 'P', 'G'), 25, 
 				cvSize(width, height));
 		if (!videoWriter.isOpened()) {
+			exit(-1);
 		}
 		recording = true;
+
+		for (int i = (index + 1) % head.size();
+				i != index; i = (i + 1) % head.size()) {
+			if (head[i].empty())
+				break;
+			videoWriter << head[i];
+		}
 	}
 
 	void stopRecording(void)
@@ -93,12 +102,16 @@ class MotionRecorder : public Recorder {
 public:
 	MotionRecorder (void) : margin(100), thresh(10)
 	{
+		buffer = vector<Mat>(margin);
+		index = 0;
 		watch();
 	}
 
 private:
+	vector<Mat> buffer; 
 	Mat current;
 	Mat previous;
+	int index;
 	int thresh;
 	int area;
 	int margin;
@@ -116,10 +129,13 @@ private:
 		while (running) {
 			current = getFrame();
 
+			buffer[index] = current;
+			index = (index + 1) % margin;
+
 			if (isMotion()) {
 				resetCount();
 				if (!isRecording()) {
-					startRecording();
+					startRecording(buffer, index);
 				}
 			}
 			
