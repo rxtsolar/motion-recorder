@@ -4,6 +4,7 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 #include <ctime>
+#include <thread>
 
 #include "blockingqueue.h"
 
@@ -95,11 +96,13 @@ private:
 
 class MotionRecorder : public Recorder {
 public:
-	MotionRecorder (void) : margin(100), thresh(10)
+	MotionRecorder (void) : margin(100), thresh(10), running(true)
 	{
 		buffer = vector<Mat>(margin);
 		index = 0;
+		thread t(&MotionRecorder::process, this);
 		watch();
+		t.join();
 	}
 
 private:
@@ -111,20 +114,28 @@ private:
 	int area;
 	int margin;
 	int count;
+	bool running;
 
 	BlockingQueue<Mat> frames;
 
 	void watch(void)
 	{
-		bool running = true;
+		while (running) {
+			frames.push(getFrame());
+			if (waitKey(40) == 27)
+				running = false;
+		}
+	}
 
-		previous = getFrame();
+	void process(void)
+	{
+		previous = frames.pop();
 		setWidth(previous.cols);
 		setHeight(previous.rows);
 		area = previous.cols * previous.rows / 10;
 
 		while (running) {
-			current = getFrame();
+			current = frames.pop();
 
 			buffer[index] = current;
 			index = (index + 1) % margin;
@@ -148,11 +159,9 @@ private:
 			}
 
 			previous = current;
-
-			if (waitKey(40) == 27)
-				running = false;
 		}
 	}
+
 
 	void writePreviousFrames(void)
 	{
