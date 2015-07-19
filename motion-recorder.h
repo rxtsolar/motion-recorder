@@ -18,7 +18,7 @@ public:
 
 	}
 
-	void startRecording(const vector<Mat>& head, int index)
+	virtual void startRecording(void)
 	{
 		time_t t;
 		tm* timeinfo;
@@ -38,13 +38,6 @@ public:
 			exit(-1);
 		}
 		recording = true;
-
-		for (int i = (index + 1) % head.size();
-				i != index; i = (i + 1) % head.size()) {
-			if (head[i].empty())
-				break;
-			videoWriter << head[i];
-		}
 	}
 
 	void stopRecording(void)
@@ -107,6 +100,16 @@ public:
 		watch();
 	}
 
+	virtual void startRecording(void)
+	{
+		Recorder::startRecording();
+		for (int i = (index + 1) % margin; i != index; i = (i + 1) % margin) {
+			if (buffer[i].empty())
+				break;
+			writeFrame(buffer[i]);
+		}
+	}
+
 private:
 	vector<Mat> buffer; 
 	Mat current;
@@ -135,7 +138,7 @@ private:
 			if (isMotion()) {
 				resetCount();
 				if (!isRecording()) {
-					startRecording(buffer, index);
+					startRecording();
 				}
 			}
 			
