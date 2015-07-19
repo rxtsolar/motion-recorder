@@ -5,6 +5,8 @@
 #include <vector>
 #include <ctime>
 
+#include "blockingqueue.h"
+
 namespace gs {
 
 using namespace std;
@@ -109,6 +111,8 @@ private:
 	int area;
 	int margin;
 	int count;
+
+	BlockingQueue<Mat> frames;
 
 	void watch(void)
 	{
